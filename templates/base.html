@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>EFICON — Gestão Contábil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>EFICON — Gestão Contábil</h1>
+    </header>
+    <main>
+        {% block conteudo %}{% endblock %}
+    </main>
+</body>
+</html>

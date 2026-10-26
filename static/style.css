@@ -1,0 +1,4 @@
+body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
+header { background: #003366; color: white; padding: 1rem; }
+table { width: 100%; border-collapse: collapse; background: white; }
+th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }

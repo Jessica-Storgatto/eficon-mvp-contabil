@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h2>Painel de Obrigações</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Cliente</th><th>Obrigação</th><th>Competência</th>
+            <th>Vencimento</th><th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for o in obrigacoes %}
+        <tr>
+            <td>{{ o.cliente }}</td>
+            <td>{{ o.tipo }}</td>
+            <td>{{ o.competencia }}</td>
+            <td>{{ o.vencimento }}</td>
+            <td>{{ o.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
