@@ -15,6 +15,9 @@ class Documento(db.Model):
     __tablename__ = "documentos"
     id = db.Column(db.Integer, primary_key=True)
     cliente_id = db.Column(db.Integer, db.ForeignKey("clientes.id"), nullable=False)
+    # Adicione a linha abaixo:
+    cliente = db.relationship('Cliente', backref='documentos') 
+    
     nome_arquivo = db.Column(db.String(255), nullable=False)
     tipo_documento = db.Column(db.String(50), nullable=False)
     caminho_armazenamento = db.Column(db.String(500), nullable=False)
@@ -24,6 +27,9 @@ class ObrigacaoAcessoria(db.Model):
     __tablename__ = "obrigacoes"
     id = db.Column(db.Integer, primary_key=True)
     cliente_id = db.Column(db.Integer, db.ForeignKey("clientes.id"), nullable=False)
+    # Adicione a linha abaixo:
+    cliente = db.relationship('Cliente', backref='obrigacoes')
+    
     tipo_obrigacao = db.Column(db.String(150), nullable=False)
     competencia = db.Column(db.String(7), nullable=False)  # MM/AAAA
     data_vencimento = db.Column(db.Date, nullable=False)
