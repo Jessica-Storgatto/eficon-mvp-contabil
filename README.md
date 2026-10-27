@@ -11,3 +11,5 @@ MVP desenvolvido para a EFICON Contabilidade, com foco no controle de obrigaçõ
 ## Como executar
 pip install -r requirements.txt
 python app.py
+
+* Projeto em fase de desenvolvimento inicial.
