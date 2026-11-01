@@ -18,3 +18,8 @@ def painel():
             "status": classificar_obrigacao(o.data_vencimento, o.status),
         })
     return render_template("painel.html", obrigacoes=dados)
+
+@bp.route("/clientes")
+def listar_clientes():
+    clientes = Cliente.query.all()
+    return render_template("clientes.html", clientes=clientes)

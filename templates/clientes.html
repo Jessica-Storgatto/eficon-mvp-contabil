@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h2>Lista de Clientes</h2>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>CPF/CNPJ</th>
+            <th>Regime Tributário</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in clientes %}
+        <tr>
+            <td>{{ c.id }}</td>
+            <td>{{ c.nome }}</td>
+            <td>{{ c.cpf_cnpj }}</td>
+            <td>{{ c.regime_tributario }}</td>
+            <td>
+                {% if c.ativo %}
+                    Ativo
+                {% else %}
+                    Inativo
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
