@@ -4,13 +4,31 @@
     <meta charset="UTF-8">
     <title>EFICON — Gestão Contábil</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
+        header { background: #003366; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        nav { background: #00509e; padding: 10px; }
+        nav a { color: white; margin-right: 20px; text-decoration: none; font-weight: bold; }
+        nav a:hover { text-decoration: underline; }
+        .container { padding: 20px; background: white; margin: 20px auto; width: 80%; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+    </style>
 </head>
 <body>
     <header>
         <h1>EFICON — Gestão Contábil</h1>
+        <span>Olá, gestora</span>
     </header>
-    <main>
+    
+    <!-- Aqui está o menu de navegação que faltava! -->
+    <nav>
+        <a href="/painel">Painel de Obrigações</a>
+        <a href="/clientes">Clientes</a>
+    </nav>
+
+    <div class="container">
         {% block conteudo %}{% endblock %}
-    </main>
+    </div>
 </body>
 </html>
