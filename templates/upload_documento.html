@@ -1,13 +1,47 @@
 {% extends "base.html" %}
 {% block conteudo %}
+<style>
+    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; font-size: 15px; }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 15px;
+        background-color: #fff;
+    }
+    /* Estilo específico para a caixa de arquivo não ficar desproporcional */
+    input[type="file"].form-control {
+        padding: 8px;
+        background-color: #f9f9f9;
+        border: 1px dashed #ccc;
+    }
+    .btn-enviar {
+        width: 100%;
+        padding: 15px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .btn-enviar:hover { background-color: #218838; }
+</style>
+
 <h2 style="text-align: center; color: #003366; margin-bottom: 30px;">Enviar Documento</h2>
 
 <div style="background: white; padding: 30px; max-width: 500px; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     <form action="/documentos/upload" method="POST" enctype="multipart/form-data">
         
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Cliente:</label>
-            <select name="cliente_id" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group">
+            <label>Cliente:</label>
+            <select name="cliente_id" class="form-control">
                 <option value="">Selecione o cliente...</option>
                 {% for c in clientes %}
                     <option value="{{ c.id }}">{{ c.nome }}</option>
@@ -15,23 +49,21 @@
             </select>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Documento:</label>
-            <select name="tipo_doc" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group">
+            <label>Tipo de Documento:</label>
+            <select name="tipo_doc" class="form-control">
                 <option value="Nota Fiscal">Nota Fiscal</option>
                 <option value="Extrato Bancário">Extrato Bancário</option>
                 <option value="Outro">Outro</option>
             </select>
         </div>
 
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Arquivo:</label>
-            <input type="file" name="arquivo" style="width: 100%; padding: 10px; border: 1px dashed #ccc; border-radius: 4px; background: #f9f9f9;">
+        <div class="form-group">
+            <label>Arquivo:</label>
+            <input type="file" name="arquivo" class="form-control">
         </div>
 
-        <button type="submit" style="width: 100%; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer;">
-            Enviar Documento
-        </button>
+        <button type="submit" class="btn-enviar">Enviar Documento</button>
     </form>
 </div>
 {% endblock %}

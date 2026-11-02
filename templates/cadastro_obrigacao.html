@@ -1,13 +1,51 @@
 {% extends "base.html" %}
 {% block conteudo %}
+<style>
+    .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #333;
+        font-size: 15px;
+    }
+    /* Classe que padroniza TODOS os campos */
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box; /* Isso impede que o padding estufe a largura */
+        font-family: inherit;
+        font-size: 15px;
+        background-color: #fff;
+    }
+    .btn-salvar {
+        width: 100%;
+        padding: 15px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .btn-salvar:hover { background-color: #218838; }
+</style>
+
 <h2 style="text-align: center; color: #003366; margin-bottom: 30px;">Cadastro de Obrigação Acessória</h2>
 
 <div style="background: white; padding: 30px; max-width: 500px; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     <form action="/obrigacoes/nova" method="POST">
         
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Cliente:</label>
-            <select name="cliente_id" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group">
+            <label>Cliente:</label>
+            <select name="cliente_id" class="form-control">
                 <option value="">Selecione o cliente...</option>
                 {% for c in clientes %}
                     <option value="{{ c.id }}">{{ c.nome }}</option>
@@ -15,24 +53,22 @@
             </select>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Obrigação:</label>
-            <input type="text" name="tipo" placeholder="Ex: DCTF" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group">
+            <label>Tipo de Obrigação:</label>
+            <input type="text" name="tipo" class="form-control" placeholder="Ex: DCTF">
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Competência:</label>
-            <input type="text" name="competencia" placeholder="MM/AAAA" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group">
+            <label>Competência:</label>
+            <input type="text" name="competencia" class="form-control" placeholder="MM/AAAA">
         </div>
 
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Data de Vencimento:</label>
-            <input type="date" name="vencimento" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        <div class="form-group">
+            <label>Data de Vencimento:</label>
+            <input type="date" name="vencimento" class="form-control">
         </div>
 
-        <button type="submit" style="width: 100%; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer;">
-            Salvar Obrigação
-        </button>
+        <button type="submit" class="btn-salvar">Salvar Obrigação</button>
     </form>
 </div>
 {% endblock %}
