@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import ObrigacaoAcessoria, Cliente
 from regras import classificar_obrigacao
 
@@ -47,7 +47,6 @@ def listar_clientes():
 
 @bp.route("/obrigacoes/nova")
 def nova_obrigacao():
-    # Busca os clientes cadastrados para preencher o select
     clientes = Cliente.query.filter_by(ativo=True).all()
     return render_template("cadastro_obrigacao.html", clientes=clientes)
 
@@ -55,3 +54,18 @@ def nova_obrigacao():
 def upload_documento():
     clientes = Cliente.query.filter_by(ativo=True).all()
     return render_template("upload_documento.html", clientes=clientes)
+
+# ROTA DE LOGIN ADICIONADA AQUI
+@bp.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        senha = request.form.get("senha")
+        
+        # Validação simples para o MVP (no futuro, usar hash seguro)
+        if email == "gestora@eficom.com.br" and senha == "123456":
+            return redirect(url_for("main.painel"))
+        else:
+            flash("Usuário ou senha inválidos. Verifique os dados e tente novamente.", "erro")
+            
+    return render_template("login.html")
