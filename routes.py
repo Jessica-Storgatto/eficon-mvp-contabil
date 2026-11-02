@@ -44,3 +44,14 @@ def painel():
 def listar_clientes():
     clientes = Cliente.query.all()
     return render_template("clientes.html", clientes=clientes)
+
+@bp.route("/obrigacoes/nova")
+def nova_obrigacao():
+    # Busca os clientes cadastrados para preencher o select
+    clientes = Cliente.query.filter_by(ativo=True).all()
+    return render_template("cadastro_obrigacao.html", clientes=clientes)
+
+@bp.route("/documentos/upload")
+def upload_documento():
+    clientes = Cliente.query.filter_by(ativo=True).all()
+    return render_template("upload_documento.html", clientes=clientes)
