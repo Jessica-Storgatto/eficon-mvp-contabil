@@ -1,22 +1,62 @@
 {% extends "base.html" %}
 {% block conteudo %}
-<h2>Painel de Obrigações</h2>
-<table>
+<h2 style="text-align: center; color: #003366;">Painel de Obrigações</h2>
+
+<!-- Cartões de Resumo -->
+<div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 30px;">
+    <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; width: 120px; text-align: center; border-radius: 5px; font-weight: bold;">
+        {{ atrasadas }} Atrasadas
+    </div>
+    <div style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; width: 120px; text-align: center; border-radius: 5px; font-weight: bold;">
+        {{ vence_breve }} vencem breve
+    </div>
+    <div style="background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; width: 120px; text-align: center; border-radius: 5px; font-weight: bold;">
+        {{ concluidas }} Concluídas
+    </div>
+</div>
+
+<!-- Tabela -->
+<table style="width: 100%; border-collapse: collapse; background-color: white;">
     <thead>
-        <tr>
-            <th>Cliente</th><th>Obrigação</th><th>Competência</th>
-            <th>Vencimento</th><th>Status</th>
+        <tr style="background-color: #e9ecef; border-bottom: 2px solid #ccc;">
+            <th style="padding: 10px; border: 1px solid #ccc;">Cliente</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Obrigação</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Competência</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Vencimento</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Status</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Ação</th>
         </tr>
     </thead>
     <tbody>
         {% for o in obrigacoes %}
-        <tr>
-            <td>{{ o.cliente }}</td>
-            <td>{{ o.tipo }}</td>
-            <td>{{ o.competencia }}</td>
-            <td>{{ o.vencimento }}</td>
-            <td>{{ o.status }}</td>
-        </tr>
+            <!-- Define a cor de fundo da linha inteira baseada no status -->
+            {% if 'Atrasada' in o.status %}
+                <tr style="background-color: #f8d7da; border: 1px solid #ccc;">
+            {% elif 'Vence' in o.status %}
+                <tr style="background-color: #fff3cd; border: 1px solid #ccc;">
+            {% elif 'Pendente' in o.status %}
+                <tr style="background-color: #d1ecf1; border: 1px solid #ccc;">
+            {% elif 'Concluída' in o.status %}
+                <tr style="background-color: #d4edda; border: 1px solid #ccc;">
+            {% else %}
+                <tr style="border: 1px solid #ccc;">
+            {% endif %}
+                <td style="padding: 10px; border: 1px solid #ccc;">{{ o.cliente }}</td>
+                <td style="padding: 10px; border: 1px solid #ccc;">{{ o.tipo }}</td>
+                <td style="padding: 10px; border: 1px solid #ccc;">{{ o.competencia }}</td>
+                <td style="padding: 10px; border: 1px solid #ccc;">{{ o.vencimento }}</td>
+                <td style="padding: 10px; border: 1px solid #ccc; font-weight: bold;">
+                    <!-- Ícones baseados no status -->
+                    {% if 'Atrasada' in o.status %} ⚠ {% endif %}
+                    {% if 'Vence' in o.status %} ⏰ {% endif %}
+                    {% if 'Pendente' in o.status %} ● {% endif %}
+                    {% if 'Concluída' in o.status %} ✓ {% endif %}
+                    {{ o.status }}
+                </td>
+                <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">
+                    <input type="checkbox" style="width: 20px; height: 20px;">
+                </td>
+            </tr>
         {% endfor %}
     </tbody>
 </table>

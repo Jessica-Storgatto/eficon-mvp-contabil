@@ -8,16 +8,37 @@ bp = Blueprint("main", __name__)
 def painel():
     obrigacoes = ObrigacaoAcessoria.query.all()
     dados = []
+    
+    # Variáveis para os cartões de resumo
+    total_atrasadas = 0
+    total_vence_breve = 0
+    total_concluidas = 0
+
     for o in obrigacoes:
         cliente = Cliente.query.get(o.cliente_id)
+        status_calculado = classificar_obrigacao(o.data_vencimento, o.status)
+        
+        # Contabiliza para os cartões
+        if status_calculado == "Atrasada":
+            total_atrasadas += 1
+        elif status_calculado.startswith("Vence"):
+            total_vence_breve += 1
+        elif status_calculado == "Concluída":
+            total_concluidas += 1
+
         dados.append({
             "cliente": cliente.nome if cliente else "—",
             "tipo": o.tipo_obrigacao,
             "competencia": o.competencia,
             "vencimento": o.data_vencimento.strftime("%d/%m/%Y"),
-            "status": classificar_obrigacao(o.data_vencimento, o.status),
+            "status": status_calculado,
         })
-    return render_template("painel.html", obrigacoes=dados)
+        
+    return render_template("painel.html", 
+                           obrigacoes=dados, 
+                           atrasadas=total_atrasadas,
+                           vence_breve=total_vence_breve,
+                           concluidas=total_concluidas)
 
 @bp.route("/clientes")
 def listar_clientes():
