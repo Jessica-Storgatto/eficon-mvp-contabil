@@ -1,5 +1,6 @@
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import ObrigacaoAcessoria, Cliente
+from models import db, ObrigacaoAcessoria, Cliente
 from regras import classificar_obrigacao
 
 bp = Blueprint("main", __name__)
@@ -45,6 +46,71 @@ def listar_clientes():
     clientes = Cliente.query.all()
     return render_template("clientes.html", clientes=clientes)
 
+@bp.route("/clientes/importar", methods=["GET", "POST"])
+def importar_clientes():
+    if request.method == "POST":
+        arquivo = request.files.get("arquivo_txt")
+        
+        if not arquivo or not arquivo.filename.endswith('.txt'):
+            flash("Por favor, envie um arquivo de texto (.txt) válido.", "erro")
+            return redirect(url_for("main.importar_clientes"))
+
+        # Lê o conteúdo do arquivo e separa em linhas
+        conteudo = arquivo.read().decode("utf-8")
+        linhas = conteudo.splitlines()
+        
+        # Variáveis para montar o cliente temporário
+        nome_atual = None
+        cpf_atual = None
+        regime_atual = None
+        status_atual = None
+        
+        adicionados = 0
+        atualizados = 0
+        
+        for linha in linhas:
+            linha = linha.strip() # Remove espaços em branco e o famoso \r do Windows
+            
+            if linha.startswith("Nome:"):
+                nome_atual = linha.replace("Nome:", "").strip()
+            elif linha.startswith("CPF/CNPJ:"):
+                cpf_atual = linha.replace("CPF/CNPJ:", "").strip()
+            elif linha.startswith("Regime:"):
+                regime_atual = linha.replace("Regime:", "").strip()
+            elif linha.startswith("Status:"):
+                # Pega o texto do status e limpa
+                status_texto = linha.replace("Status:", "").strip().lower()
+                status_atual = True if status_texto == "ativo" else False
+                
+                # Quando chegamos no Status, o bloco do cliente está completo! 
+                # Agora sim salvamos no banco.
+                if nome_atual and cpf_atual and regime_atual:
+                    cliente_existente = Cliente.query.filter_by(cpf_cnpj=cpf_atual).first()
+                    
+                    if not cliente_existente:
+                        novo_cliente = Cliente(
+                            nome=nome_atual,
+                            cpf_cnpj=cpf_atual,
+                            regime_tributario=regime_atual,
+                            ativo=status_atual
+                        )
+                        db.session.add(novo_cliente)
+                        adicionados += 1
+                    else:
+                        cliente_existente.nome = nome_atual
+                        cliente_existente.regime_tributario = regime_atual
+                        cliente_existente.ativo = status_atual
+                        atualizados += 1
+                        
+                    # Limpa as variáveis para o próximo cliente da lista
+                    nome_atual, cpf_atual, regime_atual, status_atual = None, None, None, None
+                
+        db.session.commit()
+        flash(f"Importação concluída! {adicionados} novos adicionados, {atualizados} atualizados.", "sucesso")
+        return redirect(url_for("main.listar_clientes"))
+
+    return render_template("importar_clientes.html")
+
 @bp.route("/obrigacoes/nova")
 def nova_obrigacao():
     clientes = Cliente.query.filter_by(ativo=True).all()
@@ -55,7 +121,6 @@ def upload_documento():
     clientes = Cliente.query.filter_by(ativo=True).all()
     return render_template("upload_documento.html", clientes=clientes)
 
-# ROTA DE LOGIN ADICIONADA AQUI
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -69,3 +134,18 @@ def login():
             flash("Usuário ou senha inválidos. Verifique os dados e tente novamente.", "erro")
             
     return render_template("login.html")
+
+@bp.route("/clientes/excluir/<int:id>", methods=["POST"])
+def excluir_cliente(id):
+    cliente = Cliente.query.get_or_404(id)
+    
+    # 1. Apaga todas as obrigações e documentos vinculados a este cliente
+    ObrigacaoAcessoria.query.filter_by(cliente_id=cliente.id).delete()
+    # Documento.query.filter_by(cliente_id=cliente.id).delete() # Descomente se a tabela Documento estiver sendo usada
+    
+    # 2. Apaga o cliente
+    db.session.delete(cliente)
+    db.session.commit()
+    
+    flash(f"Cliente '{cliente.nome}' e seus registros vinculados foram excluídos com sucesso.", "sucesso")
+    return redirect(url_for("main.listar_clientes"))
