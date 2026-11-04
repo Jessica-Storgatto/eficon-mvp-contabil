@@ -14,6 +14,7 @@ def painel():
     total_atrasadas = 0
     total_vence_breve = 0
     total_concluidas = 0
+    total_pendentes = 0 # <-- NOVA VARIÁVEL AQUI
 
     for o in obrigacoes:
         cliente = Cliente.query.get(o.cliente_id)
@@ -26,6 +27,8 @@ def painel():
             total_vence_breve += 1
         elif status_calculado == "Concluída":
             total_concluidas += 1
+        elif status_calculado == "Pendente": # <-- NOVA VERIFICAÇÃO AQUI
+            total_pendentes += 1
 
         dados.append({
             "cliente": cliente.nome if cliente else "—",
@@ -34,6 +37,13 @@ def painel():
             "vencimento": o.data_vencimento.strftime("%d/%m/%Y"),
             "status": status_calculado,
         })
+        
+    return render_template("painel.html", 
+                           obrigacoes=dados, 
+                           atrasadas=total_atrasadas,
+                           vence_breve=total_vence_breve,
+                           concluidas=total_concluidas,
+                           pendentes=total_pendentes) # <-- ENVIANDO PARA O HTML
         
     return render_template("painel.html", 
                            obrigacoes=dados, 
@@ -111,8 +121,46 @@ def importar_clientes():
 
     return render_template("importar_clientes.html")
 
-@bp.route("/obrigacoes/nova")
+@bp.route("/obrigacoes/nova", methods=["GET", "POST"])
 def nova_obrigacao():
+    if request.method == "POST":
+        # Pega os dados digitados no formulário
+        cliente_id = request.form.get("cliente_id")
+        tipo = request.form.get("tipo")
+        competencia = request.form.get("competencia")
+        vencimento_str = request.form.get("vencimento")
+        
+        # Validação básica de segurança
+        if not cliente_id or not tipo or not competencia or not vencimento_str:
+            flash("Por favor, preencha todos os campos.", "erro")
+            return redirect(url_for("main.nova_obrigacao"))
+            
+        try:
+            # Converte o texto "2026-11-15" (do input date) para objeto de data do Python
+            from datetime import datetime
+            data_vencimento = datetime.strptime(vencimento_str, "%Y-%m-%d").date()
+            
+            # Cria a nova obrigação no banco
+            nova_obrigacao = ObrigacaoAcessoria(
+                cliente_id=cliente_id,
+                tipo_obrigacao=tipo,
+                competencia=competencia,
+                data_vencimento=data_vencimento,
+                status="Pendente" # Toda nova obrigação nasce como pendente
+            )
+            
+            db.session.add(nova_obrigacao)
+            db.session.commit()
+            
+            flash("Obrigação cadastrada com sucesso!", "sucesso")
+            return redirect(url_for("main.painel")) # Manda de volta pro painel
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erro ao cadastrar obrigação: {str(e)}", "erro")
+            return redirect(url_for("main.nova_obrigacao"))
+
+    # Se for GET, apenas carrega a tela
     clientes = Cliente.query.filter_by(ativo=True).all()
     return render_template("cadastro_obrigacao.html", clientes=clientes)
 
