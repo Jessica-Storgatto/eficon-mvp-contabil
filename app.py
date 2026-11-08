@@ -1,6 +1,7 @@
 import os
 from flask import Flask
-from models import db
+from flask_login import LoginManager
+from models import db, Usuario
 from routes import bp as routes_bp
 
 app = Flask(__name__)
@@ -15,6 +16,17 @@ app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db.init_app(app)
+
+# --- CONFIGURAÇÃO DO LOGIN ---
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'main.login' # Se não estiver logado, manda pra rota 'login'
+login_manager.login_message = "Por favor, faça login para acessar o sistema."
+login_manager.login_message_category = "erro"
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Usuario.query.get(int(user_id))
 
 # Registra as rotas do arquivo routes.py
 app.register_blueprint(routes_bp)

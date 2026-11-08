@@ -2,13 +2,16 @@ import re
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import jsonify, Blueprint, render_template, request, redirect, url_for, flash, current_app
-from models import db, ObrigacaoAcessoria, Cliente, Documento
+from flask_login import login_user, logout_user, login_required
+from models import db, ObrigacaoAcessoria, Cliente, Documento, Usuario
 from regras import classificar_obrigacao
 
 bp = Blueprint("main", __name__)
 
 @bp.route("/painel")
+@login_required
 def painel():
     obrigacoes = ObrigacaoAcessoria.query.all()
     dados = []
@@ -48,11 +51,13 @@ def painel():
                            pendentes=total_pendentes)
 
 @bp.route("/clientes")
+@login_required
 def listar_clientes():
     clientes = Cliente.query.all()
     return render_template("clientes.html", clientes=clientes)
 
 @bp.route("/clientes/importar", methods=["GET", "POST"])
+@login_required
 def importar_clientes():
     if request.method == "POST":
         arquivo = request.files.get("arquivo_txt")
@@ -64,13 +69,11 @@ def importar_clientes():
         conteudo = arquivo.read().decode("utf-8")
         linhas = conteudo.splitlines()
         
-        # Variáveis do cliente
         nome_atual = None
         cpf_atual = None
         regime_atual = None
         status_atual = None
         
-        # Variáveis dos novos campos
         socio_atual = None
         cpf_socio_atual = None
         ie_atual = None
@@ -126,7 +129,6 @@ def importar_clientes():
                         cliente_existente.icms = icms_atual
                         atualizados += 1
                         
-                    # Limpa TUDO para o próximo cliente
                     nome_atual, cpf_atual, regime_atual, status_atual = None, None, None, None
                     socio_atual, cpf_socio_atual, ie_atual, icms_atual = None, None, None, None
                 
@@ -137,6 +139,7 @@ def importar_clientes():
     return render_template("importar_clientes.html")
 
 @bp.route("/obrigacoes/nova", methods=["GET", "POST"])
+@login_required
 def nova_obrigacao():
     if request.method == "POST":
         cliente_id = request.form.get("cliente_id")
@@ -174,6 +177,7 @@ def nova_obrigacao():
     return render_template("cadastro_obrigacao.html", clientes=clientes)
 
 @bp.route("/documentos/upload", methods=["GET", "POST"])
+@login_required
 def upload_documento():
     if request.method == "POST":
         cliente_id = request.form.get("cliente_id")
@@ -206,6 +210,7 @@ def upload_documento():
     return render_template("upload_documento.html", clientes=clientes)
 
 @bp.route("/documentos/enviados")
+@login_required
 def documentos_enviados():
     documentos = Documento.query.order_by(Documento.id.desc()).all()
     
@@ -228,14 +233,34 @@ def login():
         email = request.form.get("email")
         senha = request.form.get("senha")
         
-        if email == "gestora@eficom.com.br" and senha == "123456":
+        # Cria o usuário padrão se o banco de dados estiver vazio
+        if Usuario.query.count() == 0:
+            novo_usuario = Usuario(
+                email="gestora@eficom.com.br", 
+                senha_hash=generate_password_hash("123456")
+            )
+            db.session.add(novo_usuario)
+            db.session.commit()
+
+        usuario = Usuario.query.filter_by(email=email).first()
+        
+        if usuario and check_password_hash(usuario.senha_hash, senha):
+            login_user(usuario)
             return redirect(url_for("main.painel"))
         else:
             flash("Usuário ou senha inválidos. Verifique os dados e tente novamente.", "erro")
             
     return render_template("login.html")
 
+@bp.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("Você saiu do sistema.", "sucesso")
+    return redirect(url_for("main.login"))
+
 @bp.route("/clientes/excluir/<int:id>", methods=["POST"])
+@login_required
 def excluir_cliente(id):
     cliente = Cliente.query.get_or_404(id)
     
@@ -249,6 +274,7 @@ def excluir_cliente(id):
     return redirect(url_for("main.listar_clientes"))
 
 @bp.route("/obrigacoes/atualizar-status/<int:id>", methods=["POST"])
+@login_required
 def atualizar_status(id):
     obrigacao = ObrigacaoAcessoria.query.get_or_404(id)
     dados = request.get_json()
