@@ -11,6 +11,11 @@ class Cliente(db.Model):
     regime_tributario = db.Column(db.String(50), nullable=False)
     ativo = db.Column(db.Boolean, default=True)
 
+    socio = db.Column(db.String(150), nullable=True) 
+    cpf_socio = db.Column(db.String(14), nullable=True)
+    inscricao_estadual = db.Column(db.String(50), nullable=True)
+    icms = db.Column(db.String(50), nullable=True)
+
 class Documento(db.Model):
     __tablename__ = "documentos"
     id = db.Column(db.Integer, primary_key=True)

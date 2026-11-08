@@ -13,7 +13,6 @@ def painel():
     obrigacoes = ObrigacaoAcessoria.query.all()
     dados = []
     
-    # Variáveis para os cartões de resumo
     total_atrasadas = 0
     total_vence_breve = 0
     total_concluidas = 0
@@ -23,7 +22,6 @@ def painel():
         cliente = Cliente.query.get(o.cliente_id)
         status_calculado = classificar_obrigacao(o.data_vencimento, o.status)
         
-        # Contabiliza para os cartões
         if status_calculado == "Atrasada":
             total_atrasadas += 1
         elif status_calculado.startswith("Vence"):
@@ -34,7 +32,7 @@ def painel():
             total_pendentes += 1
 
         dados.append({
-            "id": o.id, # <-- IMPORTANTE: O ID precisa estar aqui para o check funcionar
+            "id": o.id, 
             "cliente": cliente.nome if cliente else "—",
             "tipo": o.tipo_obrigacao,
             "competencia": o.competencia,
@@ -66,10 +64,17 @@ def importar_clientes():
         conteudo = arquivo.read().decode("utf-8")
         linhas = conteudo.splitlines()
         
+        # Variáveis do cliente
         nome_atual = None
         cpf_atual = None
         regime_atual = None
         status_atual = None
+        
+        # Variáveis dos novos campos
+        socio_atual = None
+        cpf_socio_atual = None
+        ie_atual = None
+        icms_atual = None
         
         adicionados = 0
         atualizados = 0
@@ -83,6 +88,14 @@ def importar_clientes():
                 cpf_atual = linha.replace("CPF/CNPJ:", "").strip()
             elif linha.startswith("Regime:"):
                 regime_atual = linha.replace("Regime:", "").strip()
+            elif linha.startswith("Sócio:"):
+                socio_atual = linha.replace("Sócio:", "").strip()
+            elif linha.startswith("CPF do Sócio:"):
+                cpf_socio_atual = linha.replace("CPF do Sócio:", "").strip()
+            elif linha.startswith("Inscrição Estadual:"):
+                ie_atual = linha.replace("Inscrição Estadual:", "").strip()
+            elif linha.startswith("ICMS:"):
+                icms_atual = linha.replace("ICMS:", "").strip()
             elif linha.startswith("Status:"):
                 status_texto = linha.replace("Status:", "").strip().lower()
                 status_atual = True if status_texto == "ativo" else False
@@ -95,7 +108,11 @@ def importar_clientes():
                             nome=nome_atual,
                             cpf_cnpj=cpf_atual,
                             regime_tributario=regime_atual,
-                            ativo=status_atual
+                            ativo=status_atual,
+                            socio=socio_atual,
+                            cpf_socio=cpf_socio_atual,
+                            inscricao_estadual=ie_atual,
+                            icms=icms_atual
                         )
                         db.session.add(novo_cliente)
                         adicionados += 1
@@ -103,9 +120,15 @@ def importar_clientes():
                         cliente_existente.nome = nome_atual
                         cliente_existente.regime_tributario = regime_atual
                         cliente_existente.ativo = status_atual
+                        cliente_existente.socio = socio_atual
+                        cliente_existente.cpf_socio = cpf_socio_atual
+                        cliente_existente.inscricao_estadual = ie_atual
+                        cliente_existente.icms = icms_atual
                         atualizados += 1
                         
+                    # Limpa TUDO para o próximo cliente
                     nome_atual, cpf_atual, regime_atual, status_atual = None, None, None, None
+                    socio_atual, cpf_socio_atual, ie_atual, icms_atual = None, None, None, None
                 
         db.session.commit()
         flash(f"Importação concluída! {adicionados} novos adicionados, {atualizados} atualizados.", "sucesso")
@@ -164,10 +187,8 @@ def upload_documento():
         filename = secure_filename(arquivo.filename)
         caminho_completo = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
         
-        # Salva o arquivo físico na pasta
         arquivo.save(caminho_completo)
         
-        # Salva o registro no banco de dados
         novo_documento = Documento(
             cliente_id=cliente_id,
             nome_arquivo=filename,

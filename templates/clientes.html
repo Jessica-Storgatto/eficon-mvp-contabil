@@ -26,9 +26,11 @@
             <th>ID</th>
             <th>Nome</th>
             <th>CPF/CNPJ</th>
-            <th>Regime Tributário</th>
+            <th>Regime</th>
+            <th>Sócio / CPF</th>
+            <th>IE / ICMS</th>
             <th>Status</th>
-            <th>Ações</th> <!-- Nova coluna -->
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
@@ -38,6 +40,27 @@
             <td>{{ c.nome }}</td>
             <td>{{ c.cpf_cnpj }}</td>
             <td>{{ c.regime_tributario }}</td>
+            
+            <!-- Coluna Sócio -->
+            <td>
+                {% if c.socio %}
+                    {{ c.socio }}<br><small>{{ c.cpf_socio }}</small>
+                {% else %}
+                    <span style="color: #999;">—</span>
+                {% endif %}
+            </td>
+            
+            <!-- Coluna IE / ICMS -->
+            <td>
+                {% if c.inscricao_estadual %}
+                    IE: {{ c.inscricao_estadual }}<br>
+                    <small>ICMS: {{ c.icms if c.icms else '—' }}</small>
+                {% else %}
+                    <span style="color: #999;">—</span>
+                {% endif %}
+            </td>
+            
+            <!-- Coluna Status (Corrigida) -->
             <td>
                 {% if c.ativo %}
                     <span style="color: #155724; background-color: #d4edda; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px;">Ativo</span>
@@ -45,12 +68,11 @@
                     <span style="color: #721c24; background-color: #f8d7da; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px;">Inativo</span>
                 {% endif %}
             </td>
+            
+            <!-- Coluna Ações -->
             <td>
-                <!-- Botão de Excluir (usa formulário com POST por segurança) -->
-                <form action="/clientes/excluir/{{ c.id }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir o cliente {{ c.nome }}? Todas as obrigações e documentos relacionados também serão apagados.');" style="margin: 0;">
-                    <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                        Excluir
-                    </button>
+                <form action="/clientes/excluir/{{ c.id }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir o cliente {{ c.nome }}? Todos os registros vinculados serão apagados.');" style="margin: 0;">
+                    <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">Excluir</button>
                 </form>
             </td>
         </tr>
