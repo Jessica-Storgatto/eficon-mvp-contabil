@@ -2,8 +2,7 @@ import re
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import jsonify
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import jsonify, Blueprint, render_template, request, redirect, url_for, flash, current_app
 from models import db, ObrigacaoAcessoria, Cliente, Documento
 from regras import classificar_obrigacao
 
@@ -35,7 +34,7 @@ def painel():
             total_pendentes += 1
 
         dados.append({
-            "id": o.id,
+            "id": o.id, # <-- IMPORTANTE: O ID precisa estar aqui para o check funcionar
             "cliente": cliente.nome if cliente else "—",
             "tipo": o.tipo_obrigacao,
             "competencia": o.competencia,
@@ -151,7 +150,6 @@ def nova_obrigacao():
     clientes = Cliente.query.filter_by(ativo=True).all()
     return render_template("cadastro_obrigacao.html", clientes=clientes)
 
-# ROTA DE UPLOAD ATUALIZADA AQUI
 @bp.route("/documentos/upload", methods=["GET", "POST"])
 def upload_documento():
     if request.method == "POST":
@@ -186,6 +184,23 @@ def upload_documento():
     clientes = Cliente.query.filter_by(ativo=True).all()
     return render_template("upload_documento.html", clientes=clientes)
 
+@bp.route("/documentos/enviados")
+def documentos_enviados():
+    documentos = Documento.query.order_by(Documento.id.desc()).all()
+    
+    dados = []
+    for d in documentos:
+        cliente = Cliente.query.get(d.cliente_id)
+        dados.append({
+            "id": d.id,
+            "cliente": cliente.nome if cliente else "—",
+            "nome_arquivo": d.nome_arquivo,
+            "tipo_documento": d.tipo_documento,
+            "status": d.status_conferencia
+        })
+        
+    return render_template("documentos_enviados.html", documentos=dados)
+
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -204,7 +219,6 @@ def excluir_cliente(id):
     cliente = Cliente.query.get_or_404(id)
     
     ObrigacaoAcessoria.query.filter_by(cliente_id=cliente.id).delete()
-    # Descomente a linha abaixo se for apagar documentos também
     # Documento.query.filter_by(cliente_id=cliente.id).delete() 
     
     db.session.delete(cliente)
@@ -216,8 +230,6 @@ def excluir_cliente(id):
 @bp.route("/obrigacoes/atualizar-status/<int:id>", methods=["POST"])
 def atualizar_status(id):
     obrigacao = ObrigacaoAcessoria.query.get_or_404(id)
-    
-    # Recebe o novo status do JavaScript
     dados = request.get_json()
     novo_status = dados.get("status")
     
@@ -227,3 +239,5 @@ def atualizar_status(id):
         return jsonify({"sucesso": True, "mensagem": "Status atualizado!"})
         
     return jsonify({"sucesso": False, "mensagem": "Status inválido."}), 400
+        
+    

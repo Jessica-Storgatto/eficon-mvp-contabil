@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block conteudo %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="margin: 0; color: #003366;">Documentos Recebidos</h2>
+    
+    <a href="/documentos/upload" style="background-color: #28a745; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 15px;">
+        + Enviar Novo Documento
+    </a>
+</div>
+
+<table style="width: 100%; border-collapse: collapse; background-color: white;">
+    <thead>
+        <tr style="background-color: #e9ecef; border-bottom: 2px solid #ccc;">
+            <th style="padding: 10px; border: 1px solid #ccc;">ID</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Cliente</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Tipo</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Nome do Arquivo</th>
+            <th style="padding: 10px; border: 1px solid #ccc;">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in documentos %}
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ d.id }}</td>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ d.cliente }}</td>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ d.tipo_documento }}</td>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ d.nome_arquivo }}</td>
+            <td style="padding: 10px; border: 1px solid #ccc;">
+                <span style="background-color: #d1ecf1; color: #0c5460; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px;">
+                    {{ d.status }}
+                </span>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="padding: 20px; text-align: center; color: #666;">Nenhum documento enviado ainda.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
