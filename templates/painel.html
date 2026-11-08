@@ -33,15 +33,15 @@
     <tbody>
         {% for o in obrigacoes %}
             {% if 'Atrasada' in o.status %}
-                <tr class="linha-obrigacao" style="background-color: #f8d7da; border: 1px solid #ccc;">
+                <tr class="linha-obrigacao" data-id="{{ o.id }}" style="background-color: #f8d7da; border: 1px solid #ccc;">
             {% elif 'Vence' in o.status %}
-                <tr class="linha-obrigacao" style="background-color: #fff3cd; border: 1px solid #ccc;">
+                <tr class="linha-obrigacao" data-id="{{ o.id }}" style="background-color: #fff3cd; border: 1px solid #ccc;">
             {% elif 'Pendente' in o.status %}
-                <tr class="linha-obrigacao" style="background-color: #d1ecf1; border: 1px solid #ccc;">
+                <tr class="linha-obrigacao" data-id="{{ o.id }}" style="background-color: #d1ecf1; border: 1px solid #ccc;">
             {% elif 'Concluída' in o.status %}
-                <tr class="linha-obrigacao" style="background-color: #d4edda; border: 1px solid #ccc;">
+                <tr class="linha-obrigacao" data-id="{{ o.id }}" style="background-color: #d4edda; border: 1px solid #ccc;">
             {% else %}
-                <tr class="linha-obrigacao" style="border: 1px solid #ccc;">
+                <tr class="linha-obrigacao" data-id="{{ o.id }}" style="border: 1px solid #ccc;">
             {% endif %}
                 <td style="padding: 10px; border: 1px solid #ccc;">{{ o.cliente }}</td>
                 <td style="padding: 10px; border: 1px solid #ccc;">{{ o.tipo }}</td>
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const spanConcluidas = document.getElementById('count-concluidas');
     const spanAtrasadas = document.getElementById('count-atrasadas');
     const spanVence = document.getElementById('count-vence');
-    const spanPendentes = document.getElementById('count-pendentes'); // <-- Adicionado aqui
+    const spanPendentes = document.getElementById('count-pendentes');
 
     checkboxes.forEach(function(checkbox) {
         const linha = checkbox.closest('tr');
@@ -92,47 +92,63 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                // --- AÇÃO DE MARCAR COMO CONCLUÍDA ---
-                linha.style.backgroundColor = '#d4edda';
-                textoStatusElemento.innerText = 'Concluída';
-                iconeElemento.innerText = '✓ ';
-                
-                // Tira do contador anterior
-                if (statusOriginal.includes('Atrasada') && parseInt(spanAtrasadas.innerText) > 0) {
-                    spanAtrasadas.innerText = parseInt(spanAtrasadas.innerText) - 1;
-                } else if (statusOriginal.includes('Vence') && parseInt(spanVence.innerText) > 0) {
-                    spanVence.innerText = parseInt(spanVence.innerText) - 1;
-                } else if (statusOriginal.includes('Pendente') && parseInt(spanPendentes.innerText) > 0) {
-                    // <-- NOVA LOGICA AQUI
-                    spanPendentes.innerText = parseInt(spanPendentes.innerText) - 1;
-                }
-                
-                // Soma no contador de concluídas
-                spanConcluidas.innerText = parseInt(spanConcluidas.innerText) + 1;
-                
-            } else {
-                // --- AÇÃO DE DESMARCAR (DESFAZER) ---
-                // Restaura a memória original
-                linha.style.backgroundColor = corOriginal;
-                textoStatusElemento.innerText = statusOriginal;
-                iconeElemento.innerText = iconeOriginal;
+            const idObrigacao = linha.getAttribute('data-id');
+            let novoStatus = this.checked ? "Concluída" : "Pendente";
+            let checkboxAtual = this; // Salva a referência do checkbox para usar dentro do fetch
 
-                // Devolve para o contador original
-                if (statusOriginal.includes('Atrasada')) {
-                    spanAtrasadas.innerText = parseInt(spanAtrasadas.innerText) + 1;
-                } else if (statusOriginal.includes('Vence')) {
-                    spanVence.innerText = parseInt(spanVence.innerText) + 1;
-                } else if (statusOriginal.includes('Pendente')) {
-                    // <-- NOVA LOGICA AQUI
-                    spanPendentes.innerText = parseInt(spanPendentes.innerText) + 1;
+            // --- ENVIA PARA O SERVIDOR PRIMEIRO ---
+            fetch(`/obrigacoes/atualizar-status/${idObrigacao}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: novoStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.sucesso) {
+                    // --- SE O SERVIDOR SALVOU, ATUALIZA A TELA ---
+                    if (checkboxAtual.checked) {
+                        // MARCAR COMO CONCLUÍDA
+                        linha.style.backgroundColor = '#d4edda';
+                        textoStatusElemento.innerText = 'Concluída';
+                        iconeElemento.innerText = '✓ ';
+                        
+                        if (statusOriginal.includes('Atrasada') && parseInt(spanAtrasadas.innerText) > 0) {
+                            spanAtrasadas.innerText = parseInt(spanAtrasadas.innerText) - 1;
+                        } else if (statusOriginal.includes('Vence') && parseInt(spanVence.innerText) > 0) {
+                            spanVence.innerText = parseInt(spanVence.innerText) - 1;
+                        } else if (statusOriginal.includes('Pendente') && parseInt(spanPendentes.innerText) > 0) {
+                            spanPendentes.innerText = parseInt(spanPendentes.innerText) - 1;
+                        }
+                        spanConcluidas.innerText = parseInt(spanConcluidas.innerText) + 1;
+                        
+                    } else {
+                        // DESMARCAR (DESFAZER)
+                        linha.style.backgroundColor = corOriginal;
+                        textoStatusElemento.innerText = statusOriginal;
+                        iconeElemento.innerText = iconeOriginal;
+
+                        if (statusOriginal.includes('Atrasada')) {
+                            spanAtrasadas.innerText = parseInt(spanAtrasadas.innerText) + 1;
+                        } else if (statusOriginal.includes('Vence')) {
+                            spanVence.innerText = parseInt(spanVence.innerText) + 1;
+                        } else if (statusOriginal.includes('Pendente')) {
+                            spanPendentes.innerText = parseInt(spanPendentes.innerText) + 1;
+                        }
+                        
+                        if (parseInt(spanConcluidas.innerText) > 0) {
+                            spanConcluidas.innerText = parseInt(spanConcluidas.innerText) - 1;
+                        }
+                    }
+                } else {
+                    alert("Erro ao salvar no banco. Tente novamente.");
+                    checkboxAtual.checked = !checkboxAtual.checked; // Desfaz o clique se der erro
                 }
-                
-                // Tira do contador de concluídas
-                if (parseInt(spanConcluidas.innerText) > 0) {
-                    spanConcluidas.innerText = parseInt(spanConcluidas.innerText) - 1;
-                }
-            }
+            })
+            .catch(error => {
+                console.error("Erro na requisição:", error);
+                alert("Erro de conexão com o servidor.");
+                checkboxAtual.checked = !checkboxAtual.checked;
+            });
         });
     });
 });

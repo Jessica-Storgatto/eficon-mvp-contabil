@@ -2,6 +2,7 @@ import re
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from flask import jsonify
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from models import db, ObrigacaoAcessoria, Cliente, Documento
 from regras import classificar_obrigacao
@@ -34,6 +35,7 @@ def painel():
             total_pendentes += 1
 
         dados.append({
+            "id": o.id,
             "cliente": cliente.nome if cliente else "—",
             "tipo": o.tipo_obrigacao,
             "competencia": o.competencia,
@@ -210,3 +212,18 @@ def excluir_cliente(id):
     
     flash(f"Cliente '{cliente.nome}' e seus registros vinculados foram excluídos com sucesso.", "sucesso")
     return redirect(url_for("main.listar_clientes"))
+
+@bp.route("/obrigacoes/atualizar-status/<int:id>", methods=["POST"])
+def atualizar_status(id):
+    obrigacao = ObrigacaoAcessoria.query.get_or_404(id)
+    
+    # Recebe o novo status do JavaScript
+    dados = request.get_json()
+    novo_status = dados.get("status")
+    
+    if novo_status in ["Pendente", "Concluída"]:
+        obrigacao.status = novo_status
+        db.session.commit()
+        return jsonify({"sucesso": True, "mensagem": "Status atualizado!"})
+        
+    return jsonify({"sucesso": False, "mensagem": "Status inválido."}), 400
