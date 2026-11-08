@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from models import db
 from routes import bp as routes_bp
@@ -8,6 +9,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Chave secreta para as mensagens de erro (flash)
 app.config['SECRET_KEY'] = 'uma_chave_secreta_super_segura_para_o_mvp'
+
+# --- CONFIGURAÇÕES DE UPLOAD ---
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db.init_app(app)
 
