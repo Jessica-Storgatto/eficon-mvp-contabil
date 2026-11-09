@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from flask_login import LoginManager
+from flask import redirect, url_for
 from models import db, Usuario
 from routes import bp as routes_bp
 
@@ -33,9 +34,23 @@ app.register_blueprint(routes_bp)
 
 @app.route("/")
 def inicio():
-    return "EFICON — Sistema de Gestão Contábil"
+    return redirect(url_for("main.login"))
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+else:
+    # Esse bloco roda no Render (produção)
+    with app.app_context():
+        db.create_all()
+        # Cria o usuário padrão se ele não existir
+        from models import Usuario
+        from werkzeug.security import generate_password_hash
+        if Usuario.query.count() == 0:
+            admin = Usuario(
+                email="gestora@eficom.com.br", 
+                senha_hash=generate_password_hash("123456")
+            )
+            db.session.add(admin)
+            db.session.commit()    
