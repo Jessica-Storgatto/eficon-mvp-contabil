@@ -3,16 +3,16 @@
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2 style="margin: 0; color: #003366;">Documentos Recebidos</h2>
-
+    
     <div style="display: flex; gap: 10px;">
         <form action="/documentos/limpar-todos" method="POST" onsubmit="return confirm('Você tem certeza que deseja apagar a lista de todos os documentos recebidos?');" style="margin: 0;">
-            <button type="submit" style="background-color: #dc3545; color: white; padding: 12px 20px; text-decoration: none; border: none; border-radius: 4px; font-weight: bold; font-size: 15px; cursor: pointer;">
-                Limpar Todos os Documentos
+            <button type="submit" style="background-color: #dc3545; color: white; padding: 12px 20px; border: none; border-radius: 4px; font-weight: bold; font-size: 15px; cursor: pointer;">
+                Limpar Todos
             </button>
         </form>
-    
+        
         <a href="/documentos/upload" style="background-color: #28a745; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 15px;">
-        + Enviar Novo Documento
+            + Enviar Novo Documento
         </a>
     </div>
 </div>
@@ -25,6 +25,7 @@
             <th style="padding: 10px; border: 1px solid #ccc;">Tipo</th>
             <th style="padding: 10px; border: 1px solid #ccc;">Nome do Arquivo</th>
             <th style="padding: 10px; border: 1px solid #ccc;">Status</th>
+            <th style="padding: 10px; border: 1px solid #ccc; text-align: center;">Ações</th> <!-- NOVA COLUNA -->
         </tr>
     </thead>
     <tbody>
@@ -39,10 +40,16 @@
                     {{ d.status }}
                 </span>
             </td>
+            <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">
+                <!-- BOTÃO DE DOWNLOAD -->
+                <a href="/documentos/download/{{ d.id }}" style="background-color: #00509e; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 13px;">
+                    Baixar
+                </a>
+            </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="5" style="padding: 20px; text-align: center; color: #666;">Nenhum documento enviado ainda.</td>
+            <td colspan="6" style="padding: 20px; text-align: center; color: #666;">Nenhum documento enviado ainda.</td>
         </tr>
         {% endfor %}
     </tbody>

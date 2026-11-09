@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import jsonify, Blueprint, render_template, request, redirect, url_for, flash, current_app, get_flashed_messages
+from flask import jsonify, Blueprint, render_template, request, redirect, url_for, flash, current_app, get_flashed_messages, send_from_directory
 from flask_login import login_user, logout_user, login_required
 from models import db, ObrigacaoAcessoria, Cliente, Documento, Usuario
 from regras import classificar_obrigacao
@@ -318,5 +318,18 @@ def limpar_documentos():
     
     flash("Todos os documentos recebidos foram apagados com sucesso.", "sucesso")
     return redirect(url_for("main.documentos_enviados"))
+
+@bp.route("/documentos/download/<int:id>")
+@login_required
+def download_documento(id):
+    documento = Documento.query.get_or_404(id)
+    
+    # current_app.config['UPLOAD_FOLDER'] é a pasta onde os arquivos estão salvos
+    # documento.nome_arquivo é o nome do arquivo que a gestora enviou
+    return send_from_directory(
+        current_app.config['UPLOAD_FOLDER'], 
+        documento.nome_arquivo, 
+        as_attachment=True # Força o navegador a baixar o arquivo
+    )
         
     
