@@ -32,7 +32,7 @@ Nota: O plano gratuito do Render coloca a aplicação em modo de espera após 15
 ## Como Executar Localmente
 
 1. Clone o repositório:
-   git clone https://github.com/seu-usuario/eficom-mvp-contabil.git
+   git clone https://github.com/Jessica-Storgatto/eficom-mvp-contabil.git
    cd eficom-mvp-contabil
 
 2. Crie e ative um ambiente virtual:
