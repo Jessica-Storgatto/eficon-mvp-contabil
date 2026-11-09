@@ -286,5 +286,38 @@ def atualizar_status(id):
         return jsonify({"sucesso": True, "mensagem": "Status atualizado!"})
         
     return jsonify({"sucesso": False, "mensagem": "Status inválido."}), 400
+
+@bp.route("/obrigacoes/excluir/<int:id>", methods=["POST"])
+@login_required
+def excluir_obrigacao(id):
+    obrigacao = ObrigacaoAcessoria.query.get_or_404(id)
+    
+    db.session.delete(obrigacao)
+    db.session.commit()
+    
+    flash("Obrigação acessória excluída com sucesso.", "sucesso")
+    return redirect(url_for("main.painel"))
+
+@bp.route("/documentos/limpar-todos", methods=["POST"])
+@login_required
+def limpar_documentos():
+    # Busca todos os documentos para apagar os arquivos físicos da pasta
+    documentos = Documento.query.all()
+    
+    for doc in documentos:
+        # Tenta apagar o arquivo físico do disco
+        if os.path.exists(doc.caminho_armazenamento):
+            try:
+                os.remove(doc.caminho_armazenamento)
+            except Exception:
+                pass # Se der erro ao apagar o arquivo físico, continua para apagar do banco
+                
+        # Apaga o registro do banco
+        db.session.delete(doc)
+        
+    db.session.commit()
+    
+    flash("Todos os documentos recebidos foram apagados com sucesso.", "sucesso")
+    return redirect(url_for("main.documentos_enviados"))
         
     

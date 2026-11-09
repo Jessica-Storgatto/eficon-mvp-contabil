@@ -40,7 +40,8 @@
             <th style="padding: 10px; border: 1px solid #ccc;">Competência</th>
             <th style="padding: 10px; border: 1px solid #ccc;">Vencimento</th>
             <th style="padding: 10px; border: 1px solid #ccc;">Status</th>
-            <th style="padding: 10px; border: 1px solid #ccc;">Ação</th>
+            <th style="padding: 10px; border: 1px solid #ccc; text-align: center;">Concluir</th> <!-- Coluna do Checkbox -->
+            <th style="padding: 10px; border: 1px solid #ccc; text-align: center;">Excluir</th> <!-- Nova Coluna de Exclusão -->
         </tr>
     </thead>
     <tbody>
@@ -69,8 +70,19 @@
                     </span>
                     <span class="texto-status">{{ o.status }}</span>
                 </td>
+                
+                <!-- COLUNA DO CHECKBOX -->
                 <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">
-                    <input type="checkbox" class="check-concluir" style="width: 20px; height: 20px; cursor: pointer;">
+                    <input type="checkbox" class="check-concluir" style="width: 20px; height: 20px; cursor: pointer;" title="Marcar como concluída">
+                </td>
+                
+                <!-- COLUNA DE EXCLUSÃO -->
+                <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">
+                    <form action="/obrigacoes/excluir/{{ o.id }}" method="POST" onsubmit="return confirm('Você tem certeza que deseja excluir essa obrigação acessória?');" style="margin: 0;">
+                        <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;" title="Excluir obrigação">
+                            Excluir
+                        </button>
+                    </form>
                 </td>
             </tr>
         {% endfor %}
@@ -107,9 +119,8 @@ document.addEventListener("DOMContentLoaded", function() {
         checkbox.addEventListener('change', function() {
             const idObrigacao = linha.getAttribute('data-id');
             let novoStatus = this.checked ? "Concluída" : "Pendente";
-            let checkboxAtual = this; // Salva a referência do checkbox para usar dentro do fetch
+            let checkboxAtual = this; 
 
-            // --- ENVIA PARA O SERVIDOR PRIMEIRO ---
             fetch(`/obrigacoes/atualizar-status/${idObrigacao}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -118,9 +129,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(response => response.json())
             .then(data => {
                 if (data.sucesso) {
-                    // --- SE O SERVIDOR SALVOU, ATUALIZA A TELA ---
                     if (checkboxAtual.checked) {
-                        // MARCAR COMO CONCLUÍDA
                         linha.style.backgroundColor = '#d4edda';
                         textoStatusElemento.innerText = 'Concluída';
                         iconeElemento.innerText = '✓ ';
@@ -135,7 +144,6 @@ document.addEventListener("DOMContentLoaded", function() {
                         spanConcluidas.innerText = parseInt(spanConcluidas.innerText) + 1;
                         
                     } else {
-                        // DESMARCAR (DESFAZER)
                         linha.style.backgroundColor = corOriginal;
                         textoStatusElemento.innerText = statusOriginal;
                         iconeElemento.innerText = iconeOriginal;
@@ -154,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 } else {
                     alert("Erro ao salvar no banco. Tente novamente.");
-                    checkboxAtual.checked = !checkboxAtual.checked; // Desfaz o clique se der erro
+                    checkboxAtual.checked = !checkboxAtual.checked; 
                 }
             })
             .catch(error => {
