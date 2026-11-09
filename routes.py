@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import jsonify, Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import jsonify, Blueprint, render_template, request, redirect, url_for, flash, current_app, get_flashed_messages
 from flask_login import login_user, logout_user, login_required
 from models import db, ObrigacaoAcessoria, Cliente, Documento, Usuario
 from regras import classificar_obrigacao
@@ -233,7 +233,6 @@ def login():
         email = request.form.get("email")
         senha = request.form.get("senha")
         
-        # Cria o usuário padrão se o banco de dados estiver vazio
         if Usuario.query.count() == 0:
             novo_usuario = Usuario(
                 email="gestora@eficom.com.br", 
@@ -250,6 +249,10 @@ def login():
         else:
             flash("Usuário ou senha inválidos. Verifique os dados e tente novamente.", "erro")
             
+    # Limpa o buffer de mensagens para a tela de login não exibir mensagens antigas
+    if request.method == "GET":
+        get_flashed_messages(with_categories=True)
+            
     return render_template("login.html")
 
 @bp.route("/logout")
@@ -265,7 +268,6 @@ def excluir_cliente(id):
     cliente = Cliente.query.get_or_404(id)
     
     ObrigacaoAcessoria.query.filter_by(cliente_id=cliente.id).delete()
-    # Documento.query.filter_by(cliente_id=cliente.id).delete() 
     
     db.session.delete(cliente)
     db.session.commit()
@@ -301,18 +303,15 @@ def excluir_obrigacao(id):
 @bp.route("/documentos/limpar-todos", methods=["POST"])
 @login_required
 def limpar_documentos():
-    # Busca todos os documentos para apagar os arquivos físicos da pasta
     documentos = Documento.query.all()
     
     for doc in documentos:
-        # Tenta apagar o arquivo físico do disco
         if os.path.exists(doc.caminho_armazenamento):
             try:
                 os.remove(doc.caminho_armazenamento)
             except Exception:
-                pass # Se der erro ao apagar o arquivo físico, continua para apagar do banco
+                pass 
                 
-        # Apaga o registro do banco
         db.session.delete(doc)
         
     db.session.commit()
