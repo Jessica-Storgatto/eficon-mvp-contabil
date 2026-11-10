@@ -60,6 +60,55 @@ Nota: O plano gratuito do Render coloca a aplicação em modo de espera após 15
 Para rodar os testes unitários e de integração, utilize:
 python -m pytest --cov=. --cov-report=term-missing
 
+## ARQUITETURA E ESTRUTURA DO PROJETO
+```
+eficom-mvp-contabil/
+├── app.py                      # Ponto de entrada: inicializa Flask, configura SECRET_KEY, Banco e LoginManager
+├── models.py                   # Camada de Persistência: define as tabelas (Cliente, Documento, Obrigacao, Usuario) via SQLAlchemy
+├── regras.py                   # Camada de Negócio: funções puras de cálculo de prazo e classificação de status
+├── routes.py                   # Camada de Controle: define todas as rotas (URLs), manipula requisições HTTP e chama as regras
+├── requirements.txt            # Lista de dependências Python (Flask, SQLAlchemy, Pytest, Gunicorn)
+├── Procfile                    # Arquivo de configuração de deploy para o Render (comando do Gunicorn)
+├── README.md                   # Documentação do projeto, instruções de uso e arquitetura
+├── .gitignore                  # Lista de arquivos que não devem ser enviados ao GitHub (ex: venv, .db)
+├── .coverage                   # Arquivo gerado automaticamente pelo Pytest-Cov
+│
+├── instance/                   # Pasta gerada automaticamente pelo Flask
+│   └── eficom.db               # Banco de dados SQLite (onde os dados reais são armazenados)
+│
+├── uploads/                    # Pasta gerada automaticamente pelo sistema
+│   └── (arquivos enviados)     # Armazena fisicamente os documentos anexados pela gestora
+│
+├── static/                     # Arquivos estáticos (Frontend)
+│   └── style.css               # Folha de estilos global (design, cores e responsividade)
+│
+├── templates/                  # Camada de Apresentação (HTML + Jinja2)
+│   ├── base.html               # Layout mestre (cabeçalho, menu de navegação, fontes Montserrat)
+│   ├── login.html              # Tela 1: Autenticação de usuário
+│   ├── painel.html             # Tela 2: Painel de obrigações (cartões de resumo e tabela interativa com JS)
+│   ├── cadastro_obrigacao.html # Tela de formulário para nova obrigação
+│   ├── clientes.html           # Tela de listagem de clientes e exclusão
+│   ├── importar_clientes.html  # Tela de upload de arquivo .txt para importação em massa
+│   ├── upload_documento.html   # Tela de envio de arquivos
+│   └── documentos_enviados.html# Tela de listagem e download dos documentos recebidos
+│
+├── tests/                      # Camada de Qualidade (Testes Automatizados)
+│   ├── test_prazos.py          # Testes unitários (regras de negócio isoladas)
+│   └── test_integracao.py      # Testes de integração (conexão com banco e persistência)
+│
+└── .github/
+    └── workflows/
+        └── ci.yml              # Pipeline de Integração Contínua (GitHub Actions)
+```
+
+## Principais Decisões Arquiteturais
+
+1. Separação de Responsabilidades (SoC): O arquivo regras.py não sabe o que é um HTML ou um banco de dados. Ele apenas recebe datas e retorna strings de status. Isso permite que os testes unitários rodem em milissegundos sem precisar simular um navegador;
+
+2. Flask Blueprints (routes.py): As rotas foram agrupadas em um Blueprint chamado main, o que permite escalar o projeto (ex: se no futuro houver uma área de relatórios, ela pode ter seu próprio arquivo de rotas);
+
+3. SQLAlchemy (ORM): A camada de persistência usa o padrão Object-Relational Mapping. Isso significa que não escrevemos SQL puro no código, o que evita vulnerabilidades como SQL Injection e facilita a futura migração para um banco PostgreSQL em produção.
+
 ## Impacto Social e ODS
 
 O projeto está alinhado ao ODS 8 (Trabalho Decente e Crescimento Econômico), especificamente à Meta 8.3, ao fortalecer a eficiência operacional de um pequeno escritório de contabilidade. Isso possibilita que pequenos empreendedores locais recebam um atendimento mais ágil e com menor risco de multas, contribuindo para a formalização e a saúde financeira de micro e pequenas empresas da comunidade.
